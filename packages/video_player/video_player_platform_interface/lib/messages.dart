@@ -130,6 +130,28 @@ class PositionMessage {
   }
 }
 
+class TrackSelectionsMessage {
+  int? textureId;
+  String? trackId;
+  List<Object?>? trackSelections;
+
+  Object encode() {
+    final Map<Object?, Object?> pigeonMap = <Object?, Object?>{};
+    pigeonMap['textureId'] = textureId;
+    pigeonMap['trackId'] = trackId;
+    pigeonMap['trackSelections'] = trackSelections;
+    return pigeonMap;
+  }
+
+  static TrackSelectionsMessage decode(Object message) {
+    final Map<Object?, Object?> pigeonMap = message as Map<Object?, Object?>;
+    return TrackSelectionsMessage()
+      ..textureId = pigeonMap['textureId'] as int?
+      ..trackId = pigeonMap['trackId'] as String?
+      ..trackSelections = pigeonMap['trackSelections'] as List<Object?>?;
+  }
+}
+
 class MixWithOthersMessage {
   bool? mixWithOthers;
 
@@ -160,9 +182,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -185,9 +207,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -210,9 +232,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -235,9 +257,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -260,9 +282,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -286,9 +308,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -311,9 +333,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -336,9 +358,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -361,9 +383,61 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
+        message: error['message'] as String?,
+        details: error['details'],
+      );
+    } else {
+      // noop
+    }
+  }
+
+  Future<TrackSelectionsMessage> trackSelections(TextureMessage arg) async {
+    final Object encoded = arg.encode();
+    const BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.VideoPlayerApi.trackSelections',
+        StandardMessageCodec());
+    final Map<Object?, Object?>? replyMap =
+        await channel.send(encoded) as Map<Object?, Object?>?;
+    if (replyMap == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+        details: null,
+      );
+    } else if (replyMap['error'] != null) {
+      final Map<Object?, Object?> error =
+          (replyMap['error'] as Map<Object?, Object?>?)!;
+      throw PlatformException(
+        code: (error['code'] as String?)!,
+        message: error['message'] as String?,
+        details: error['details'],
+      );
+    } else {
+      return TrackSelectionsMessage.decode(replyMap['result']!);
+    }
+  }
+
+  Future<void> setTrackSelection(TrackSelectionsMessage arg) async {
+    final Object encoded = arg.encode();
+    const BasicMessageChannel<Object?> channel = BasicMessageChannel<Object?>(
+        'dev.flutter.pigeon.VideoPlayerApi.setTrackSelection',
+        StandardMessageCodec());
+    final Map<Object?, Object?>? replyMap =
+        await channel.send(encoded) as Map<Object?, Object?>?;
+    if (replyMap == null) {
+      throw PlatformException(
+        code: 'channel-error',
+        message: 'Unable to establish connection on channel.',
+        details: null,
+      );
+    } else if (replyMap['error'] != null) {
+      final Map<Object?, Object?> error =
+          (replyMap['error'] as Map<Object?, Object?>?)!;
+      throw PlatformException(
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -386,9 +460,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
@@ -412,9 +486,9 @@ class VideoPlayerApi {
       );
     } else if (replyMap['error'] != null) {
       final Map<Object?, Object?> error =
-          replyMap['error'] as Map<Object?, Object?>;
+          (replyMap['error'] as Map<Object?, Object?>?)!;
       throw PlatformException(
-        code: error['code'] as String,
+        code: (error['code'] as String?)!,
         message: error['message'] as String?,
         details: error['details'],
       );
