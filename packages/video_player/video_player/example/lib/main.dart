@@ -5,7 +5,7 @@
 // ignore_for_file: public_member_api_docs
 
 /// An example of using the plugin, controlling lifecycle and playback of the
-/// video.import 'package:flutter/cupertino.dart';
+/// video.
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -45,10 +45,10 @@ class _App extends StatelessWidget {
             tabs: <Widget>[
               Tab(
                 icon: Icon(Icons.cloud),
-                text: "Remote",
+                text: 'Remote',
               ),
-              Tab(icon: Icon(Icons.insert_drive_file), text: "Asset"),
-              Tab(icon: Icon(Icons.list), text: "List example"),
+              Tab(icon: Icon(Icons.insert_drive_file), text: 'Asset'),
+              Tab(icon: Icon(Icons.list), text: 'List example'),
             ],
           ),
         ),
@@ -69,36 +69,33 @@ class _ButterFlyAssetVideoInList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       children: <Widget>[
-        _ExampleCard(title: "Item a"),
-        _ExampleCard(title: "Item b"),
-        _ExampleCard(title: "Item c"),
-        _ExampleCard(title: "Item d"),
-        _ExampleCard(title: "Item e"),
-        _ExampleCard(title: "Item f"),
-        _ExampleCard(title: "Item g"),
+        const _ExampleCard(title: 'Item a'),
+        const _ExampleCard(title: 'Item b'),
+        const _ExampleCard(title: 'Item c'),
+        const _ExampleCard(title: 'Item d'),
+        const _ExampleCard(title: 'Item e'),
+        const _ExampleCard(title: 'Item f'),
+        const _ExampleCard(title: 'Item g'),
         Card(
             child: Column(children: <Widget>[
           Column(
             children: <Widget>[
               const ListTile(
                 leading: Icon(Icons.cake),
-                title: Text("Video video"),
+                title: Text('Video video'),
               ),
-              Stack(
-                  alignment: FractionalOffset.bottomRight +
-                      const FractionalOffset(-0.1, -0.1),
-                  children: <Widget>[
-                    _ButterFlyAssetVideo(),
-                    Image.asset('assets/flutter-mark-square-64.png'),
-                  ]),
+              Stack(alignment: FractionalOffset.bottomRight + const FractionalOffset(-0.1, -0.1), children: <Widget>[
+                _ButterFlyAssetVideo(),
+                Image.asset('assets/flutter-mark-square-64.png'),
+              ]),
             ],
           ),
         ])),
-        _ExampleCard(title: "Item h"),
-        _ExampleCard(title: "Item i"),
-        _ExampleCard(title: "Item j"),
-        _ExampleCard(title: "Item k"),
-        _ExampleCard(title: "Item l"),
+        const _ExampleCard(title: 'Item h'),
+        const _ExampleCard(title: 'Item i'),
+        const _ExampleCard(title: 'Item j'),
+        const _ExampleCard(title: 'Item k'),
+        const _ExampleCard(title: 'Item l'),
       ],
     );
   }
@@ -208,9 +205,8 @@ class _BumbleBeeRemoteVideoState extends State<_BumbleBeeRemoteVideo> {
   late VideoPlayerController _controller;
 
   Future<ClosedCaptionFile> _loadCaptions() async {
-    final String fileContents = await DefaultAssetBundle.of(context)
-        .loadString('assets/bumble_bee_captions.srt');
-    return SubRipCaptionFile(fileContents);
+    final String fileContents = await DefaultAssetBundle.of(context).loadString('assets/bumble_bee_captions.vtt');
+    return WebVTTCaptionFile(fileContents); // For vtt files, use WebVTTCaptionFile
   }
 
   @override
@@ -265,10 +261,20 @@ class _BumbleBeeRemoteVideoState extends State<_BumbleBeeRemoteVideo> {
 }
 
 class _ControlsOverlay extends StatelessWidget {
-  const _ControlsOverlay({Key? key, required this.controller})
-      : super(key: key);
+  const _ControlsOverlay({Key? key, required this.controller}) : super(key: key);
 
-  static const _examplePlaybackRates = [
+  static const List<Duration> _exampleCaptionOffsets = <Duration>[
+    Duration(seconds: -10),
+    Duration(seconds: -3),
+    Duration(seconds: -1, milliseconds: -500),
+    Duration(milliseconds: -250),
+    Duration(milliseconds: 0),
+    Duration(milliseconds: 250),
+    Duration(seconds: 1, milliseconds: 500),
+    Duration(seconds: 3),
+    Duration(seconds: 10),
+  ];
+  static const List<double> _examplePlaybackRates = <double>[
     0.25,
     0.5,
     1.0,
@@ -286,17 +292,18 @@ class _ControlsOverlay extends StatelessWidget {
     return Stack(
       children: <Widget>[
         AnimatedSwitcher(
-          duration: Duration(milliseconds: 50),
-          reverseDuration: Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 50),
+          reverseDuration: const Duration(milliseconds: 200),
           child: controller.value.isPlaying
-              ? SizedBox.shrink()
+              ? const SizedBox.shrink()
               : Container(
                   color: Colors.black26,
-                  child: Center(
+                  child: const Center(
                     child: Icon(
                       Icons.play_arrow,
                       color: Colors.white,
                       size: 100.0,
+                      semanticLabel: 'Play',
                     ),
                   ),
                 ),
@@ -307,17 +314,46 @@ class _ControlsOverlay extends StatelessWidget {
           },
         ),
         Align(
+          alignment: Alignment.topLeft,
+          child: PopupMenuButton<Duration>(
+            initialValue: controller.value.captionOffset,
+            tooltip: 'Caption Offset',
+            onSelected: (Duration delay) {
+              controller.setCaptionOffset(delay);
+            },
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuItem<Duration>>[
+                for (final Duration offsetDuration in _exampleCaptionOffsets)
+                  PopupMenuItem<Duration>(
+                    value: offsetDuration,
+                    child: Text('${offsetDuration.inMilliseconds}ms'),
+                  )
+              ];
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                // Using less vertical padding as the text is also longer
+                // horizontally, so it feels like it would need more spacing
+                // horizontally (matching the aspect ratio of the video).
+                vertical: 12,
+                horizontal: 16,
+              ),
+              child: Text('${controller.value.captionOffset.inMilliseconds}ms'),
+            ),
+          ),
+        ),
+        Align(
           alignment: Alignment.topRight,
           child: PopupMenuButton<double>(
             initialValue: controller.value.playbackSpeed,
             tooltip: 'Playback speed',
-            onSelected: (speed) {
+            onSelected: (double speed) {
               controller.setPlaybackSpeed(speed);
             },
-            itemBuilder: (context) {
-              return [
-                for (final speed in _examplePlaybackRates)
-                  PopupMenuItem(
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuItem<double>>[
+                for (final double speed in _examplePlaybackRates)
+                  PopupMenuItem<double>(
                     value: speed,
                     child: Text('${speed}x'),
                   )
@@ -353,8 +389,7 @@ class _PlayerVideoAndPopPageState extends State<_PlayerVideoAndPopPage> {
   void initState() {
     super.initState();
 
-    _videoPlayerController =
-        VideoPlayerController.asset('assets/Butterfly-209.mp4');
+    _videoPlayerController = VideoPlayerController.asset('assets/Butterfly-209.mp4');
     _videoPlayerController.addListener(() {
       if (startedPlaying && !_videoPlayerController.value.isPlaying) {
         Navigator.pop(context);
@@ -383,7 +418,7 @@ class _PlayerVideoAndPopPageState extends State<_PlayerVideoAndPopPage> {
         child: FutureBuilder<bool>(
           future: started(),
           builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-            if (snapshot.data == true) {
+            if (snapshot.data ?? false) {
               return AspectRatio(
                 aspectRatio: _videoPlayerController.value.aspectRatio,
                 child: VideoPlayer(_videoPlayerController),
@@ -417,18 +452,9 @@ class _GetTrackSelectionButton extends StatelessWidget {
             final selected = await showDialog<TrackSelection>(
               context: context,
               builder: (_) => _TrackSelectionDialog(
-                videoTrackSelections: tracks
-                    .where(
-                        (track) => track.trackType == TrackSelectionType.video)
-                    .toList(),
-                audioTrackSelections: tracks
-                    .where(
-                        (track) => track.trackType == TrackSelectionType.audio)
-                    .toList(),
-                textTrackSelections: tracks
-                    .where(
-                        (track) => track.trackType == TrackSelectionType.text)
-                    .toList(),
+                videoTrackSelections: tracks.where((track) => track.trackType == TrackSelectionType.video).toList(),
+                audioTrackSelections: tracks.where((track) => track.trackType == TrackSelectionType.audio).toList(),
+                textTrackSelections: tracks.where((track) => track.trackType == TrackSelectionType.text).toList(),
               ),
             );
             if (selected != null) {
@@ -487,8 +513,7 @@ class _TrackSelectionDialog extends StatelessWidget {
                         .map((track) => RadioListTile<TrackSelection>(
                               title: Text(track.trackName),
                               value: track,
-                              groupValue: videoTrackSelections
-                                  .firstWhere((track) => track.isSelected),
+                              groupValue: videoTrackSelections.firstWhere((track) => track.isSelected),
                               selected: track.isSelected,
                               onChanged: (TrackSelection? track) {
                                 if (track == null) {
@@ -510,8 +535,7 @@ class _TrackSelectionDialog extends StatelessWidget {
                         .map((track) => RadioListTile<TrackSelection>(
                               title: Text(track.trackName),
                               value: track,
-                              groupValue: audioTrackSelections
-                                  .firstWhere((track) => track.isSelected),
+                              groupValue: audioTrackSelections.firstWhere((track) => track.isSelected),
                               selected: track.isSelected,
                               onChanged: (TrackSelection? track) {
                                 if (track == null) {
@@ -533,8 +557,7 @@ class _TrackSelectionDialog extends StatelessWidget {
                         .map((track) => RadioListTile<TrackSelection>(
                               title: Text(track.trackName),
                               value: track,
-                              groupValue: textTrackSelections
-                                  .firstWhere((track) => track.isSelected),
+                              groupValue: textTrackSelections.firstWhere((track) => track.isSelected),
                               selected: track.isSelected,
                               onChanged: (TrackSelection? track) {
                                 if (track == null) {

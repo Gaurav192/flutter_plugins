@@ -1,3 +1,43 @@
+## NEXT
+
+* Ignores unnecessary import warnings in preparation for [upcoming Flutter changes](https://github.com/flutter/flutter/pull/104231).
+
+## 2.1.7
+
+* Updates code for stricter analysis options.
+* Removes unnecessary imports.
+
+## 2.1.6
+
+* Migrates from `ui.hash*` to `Object.hash*`.
+* Updates minimum Flutter version to 2.5.0.
+
+## 2.1.5
+
+Removes dependency on `meta`.
+
+## 2.1.4
+
+* Update to use the `verify` method introduced in plugin_platform_interface 2.1.0.
+
+## 2.1.3
+
+* `LatLng` constructor maintains longitude precision when given within
+  acceptable range
+
+## 2.1.2
+
+* Add additional marker drag events
+
+## 2.1.1
+
+* Method `buildViewWithTextDirection` has been added to the platform interface.
+
+## 2.1.0
+
+* Add support for Hybrid Composition when building the Google Maps widget on Android. Set
+  `MethodChannelGoogleMapsFlutter.useAndroidViewSurface` to `true` to build with Hybrid Composition.
+
 ## 2.0.4
 
 * Preserve the `TileProvider` when copying `TileOverlay`, fixing a

@@ -2,37 +2,38 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:io' as io;
+
 import 'package:args/command_runner.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:flutter_plugin_tools/src/create_all_plugins_app_command.dart';
+import 'package:platform/platform.dart';
 import 'package:test/test.dart';
 
 import 'util.dart';
 
 void main() {
   group('$CreateAllPluginsAppCommand', () {
-    CommandRunner<Null> runner;
-    FileSystem fileSystem;
-    Directory testRoot;
-    Directory packagesDir;
-    Directory appDir;
+    late CommandRunner<void> runner;
+    late CreateAllPluginsAppCommand command;
+    late FileSystem fileSystem;
+    late Directory testRoot;
+    late Directory packagesDir;
 
     setUp(() {
       // Since the core of this command is a call to 'flutter create', the test
       // has to use the real filesystem. Put everything possible in a unique
-      // temporary to minimize affect on the host system.
-      fileSystem = LocalFileSystem();
+      // temporary to minimize effect on the host system.
+      fileSystem = const LocalFileSystem();
       testRoot = fileSystem.systemTempDirectory.createTempSync();
       packagesDir = testRoot.childDirectory('packages');
 
-      final CreateAllPluginsAppCommand command = CreateAllPluginsAppCommand(
+      command = CreateAllPluginsAppCommand(
         packagesDir,
-        fileSystem,
         pluginsRoot: testRoot,
       );
-      appDir = command.appDirectory;
-      runner = CommandRunner<Null>(
+      runner = CommandRunner<void>(
           'create_all_test', 'Test for $CreateAllPluginsAppCommand');
       runner.addCommand(command);
     });
@@ -42,13 +43,12 @@ void main() {
     });
 
     test('pubspec includes all plugins', () async {
-      createFakePlugin('plugina', packagesDirectory: packagesDir);
-      createFakePlugin('pluginb', packagesDirectory: packagesDir);
-      createFakePlugin('pluginc', packagesDirectory: packagesDir);
+      createFakePlugin('plugina', packagesDir);
+      createFakePlugin('pluginb', packagesDir);
+      createFakePlugin('pluginc', packagesDir);
 
-      await runner.run(<String>['all-plugins-app']);
-      final List<String> pubspec =
-          appDir.childFile('pubspec.yaml').readAsLinesSync();
+      await runCapturingPrint(runner, <String>['all-plugins-app']);
+      final List<String> pubspec = command.app.pubspecFile.readAsLinesSync();
 
       expect(
           pubspec,
@@ -60,13 +60,12 @@ void main() {
     });
 
     test('pubspec has overrides for all plugins', () async {
-      createFakePlugin('plugina', packagesDirectory: packagesDir);
-      createFakePlugin('pluginb', packagesDirectory: packagesDir);
-      createFakePlugin('pluginc', packagesDirectory: packagesDir);
+      createFakePlugin('plugina', packagesDir);
+      createFakePlugin('pluginb', packagesDir);
+      createFakePlugin('pluginc', packagesDir);
 
-      await runner.run(<String>['all-plugins-app']);
-      final List<String> pubspec =
-          appDir.childFile('pubspec.yaml').readAsLinesSync();
+      await runCapturingPrint(runner, <String>['all-plugins-app']);
+      final List<String> pubspec = command.app.pubspecFile.readAsLinesSync();
 
       expect(
           pubspec,
@@ -78,14 +77,59 @@ void main() {
           ]));
     });
 
-    test('pubspec is compatible with null-safe app code', () async {
-      createFakePlugin('plugina', packagesDirectory: packagesDir);
+    test('pubspec preserves existing Dart SDK version', () async {
+      const String baselineProjectName = 'baseline';
+      final Directory baselineProjectDirectory =
+          testRoot.childDirectory(baselineProjectName);
+      io.Process.runSync(
+        getFlutterCommand(const LocalPlatform()),
+        <String>[
+          'create',
+          '--template=app',
+          '--project-name=$baselineProjectName',
+          baselineProjectDirectory.path,
+        ],
+      );
+      final Pubspec baselinePubspec =
+          RepositoryPackage(baselineProjectDirectory).parsePubspec();
 
-      await runner.run(<String>['all-plugins-app']);
-      final String pubspec =
-          appDir.childFile('pubspec.yaml').readAsStringSync();
+      createFakePlugin('plugina', packagesDir);
 
-      expect(pubspec, contains(RegExp('sdk:\\s*(?:["\']>=|[^])2\\.12\\.')));
+      await runCapturingPrint(runner, <String>['all-plugins-app']);
+      final Pubspec generatedPubspec = command.app.parsePubspec();
+
+      const String dartSdkKey = 'sdk';
+      expect(generatedPubspec.environment?[dartSdkKey],
+          baselinePubspec.environment?[dartSdkKey]);
+    });
+
+    test('handles --output-dir', () async {
+      createFakePlugin('plugina', packagesDir);
+
+      final Directory customOutputDir =
+          fileSystem.systemTempDirectory.createTempSync();
+      await runCapturingPrint(runner,
+          <String>['all-plugins-app', '--output-dir=${customOutputDir.path}']);
+
+      expect(
+          command.app.path, customOutputDir.childDirectory('all_plugins').path);
+    });
+
+    test('logs exclusions', () async {
+      createFakePlugin('plugina', packagesDir);
+      createFakePlugin('pluginb', packagesDir);
+      createFakePlugin('pluginc', packagesDir);
+
+      final List<String> output = await runCapturingPrint(
+          runner, <String>['all-plugins-app', '--exclude=pluginb,pluginc']);
+
+      expect(
+          output,
+          containsAllInOrder(<String>[
+            'Exluding the following plugins from the combined build:',
+            '  pluginb',
+            '  pluginc',
+          ]));
     });
   });
 }
