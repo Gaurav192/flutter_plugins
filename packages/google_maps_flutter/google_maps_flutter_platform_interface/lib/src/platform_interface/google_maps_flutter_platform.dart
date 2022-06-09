@@ -3,15 +3,15 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+// TODO(a14n): remove this import once Flutter 3.1 or later reaches stable (including flutter/flutter#104231)
+// ignore: unnecessary_import
 import 'dart:typed_data';
 
-import 'package:flutter/widgets.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-
-import 'package:google_maps_flutter_platform_interface/src/method_channel/method_channel_google_maps_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -39,7 +39,7 @@ abstract class GoogleMapsFlutterPlatform extends PlatformInterface {
   /// Platform-specific plugins should set this with their own platform-specific
   /// class that extends [GoogleMapsFlutterPlatform] when they register themselves.
   static set instance(GoogleMapsFlutterPlatform instance) {
-    PlatformInterface.verifyToken(instance, _token);
+    PlatformInterface.verify(instance, _token);
     _instance = instance;
   }
 
@@ -304,6 +304,16 @@ abstract class GoogleMapsFlutterPlatform extends PlatformInterface {
   }
 
   /// A [Marker] has been dragged to a different [LatLng] position.
+  Stream<MarkerDragStartEvent> onMarkerDragStart({required int mapId}) {
+    throw UnimplementedError('onMarkerDragEnd() has not been implemented.');
+  }
+
+  /// A [Marker] has been dragged to a different [LatLng] position.
+  Stream<MarkerDragEvent> onMarkerDrag({required int mapId}) {
+    throw UnimplementedError('onMarkerDragEnd() has not been implemented.');
+  }
+
+  /// A [Marker] has been dragged to a different [LatLng] position.
   Stream<MarkerDragEndEvent> onMarkerDragEnd({required int mapId}) {
     throw UnimplementedError('onMarkerDragEnd() has not been implemented.');
   }
@@ -338,7 +348,7 @@ abstract class GoogleMapsFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('dispose() has not been implemented.');
   }
 
-  /// Returns a widget displaying the map view
+  /// Returns a widget displaying the map view.
   Widget buildView(
     int creationId,
     PlatformViewCreatedCallback onPlatformViewCreated, {
@@ -350,10 +360,46 @@ abstract class GoogleMapsFlutterPlatform extends PlatformInterface {
     Set<TileOverlay> tileOverlays = const <TileOverlay>{},
     Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers =
         const <Factory<OneSequenceGestureRecognizer>>{},
-    // TODO: Replace with a structured type that's part of the interface.
-    // See https://github.com/flutter/flutter/issues/70330.
+    // TODO(stuartmorgan): Replace with a structured type that's part of the
+    // interface. See https://github.com/flutter/flutter/issues/70330.
     Map<String, dynamic> mapOptions = const <String, dynamic>{},
   }) {
     throw UnimplementedError('buildView() has not been implemented.');
+  }
+
+  /// Returns a widget displaying the map view.
+  ///
+  /// This method is similar to [buildView], but contains a parameter for
+  /// platforms that require a text direction.
+  ///
+  /// Default behavior passes all parameters except `textDirection` to
+  /// [buildView]. This is for backward compatibility with existing
+  /// implementations. Platforms that use the text direction should override
+  /// this as the primary implementation, and delegate to it from buildView.
+  Widget buildViewWithTextDirection(
+    int creationId,
+    PlatformViewCreatedCallback onPlatformViewCreated, {
+    required CameraPosition initialCameraPosition,
+    required TextDirection textDirection,
+    Set<Marker> markers = const <Marker>{},
+    Set<Polygon> polygons = const <Polygon>{},
+    Set<Polyline> polylines = const <Polyline>{},
+    Set<Circle> circles = const <Circle>{},
+    Set<TileOverlay> tileOverlays = const <TileOverlay>{},
+    Set<Factory<OneSequenceGestureRecognizer>>? gestureRecognizers,
+    Map<String, dynamic> mapOptions = const <String, dynamic>{},
+  }) {
+    return buildView(
+      creationId,
+      onPlatformViewCreated,
+      initialCameraPosition: initialCameraPosition,
+      markers: markers,
+      polygons: polygons,
+      polylines: polylines,
+      circles: circles,
+      tileOverlays: tileOverlays,
+      gestureRecognizers: gestureRecognizers,
+      mapOptions: mapOptions,
+    );
   }
 }

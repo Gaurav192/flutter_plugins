@@ -1,18 +1,16 @@
 // Copyright 2013 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-// @dart=2.9
 
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:integration_test/integration_test.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:integration_test/integration_test.dart';
 
 import 'google_map_inspector.dart';
 
@@ -37,14 +35,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool compassEnabled = await inspector.isCompassEnabled();
+    bool? compassEnabled = await inspector.isCompassEnabled();
     expect(compassEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -54,7 +52,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         compassEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -77,14 +75,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool mapToolbarEnabled = await inspector.isMapToolbarEnabled();
+    bool? mapToolbarEnabled = await inspector.isMapToolbarEnabled();
     expect(mapToolbarEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -94,7 +92,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         mapToolbarEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -117,7 +115,7 @@ void main() {
     final Key key = GlobalKey();
     final Completer<GoogleMapInspector> inspectorCompleter =
         Completer<GoogleMapInspector>();
-    GoogleMapController controller;
+    late GoogleMapController controller;
 
     const MinMaxZoomPreference initialZoomLevel = MinMaxZoomPreference(4, 8);
     const MinMaxZoomPreference finalZoomLevel = MinMaxZoomPreference(6, 10);
@@ -131,7 +129,7 @@ void main() {
         onMapCreated: (GoogleMapController c) async {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(c.channel);
+              GoogleMapInspector(c.channel!);
           controller = c;
           inspectorCompleter.complete(inspector);
         },
@@ -141,12 +139,13 @@ void main() {
     final GoogleMapInspector inspector = await inspectorCompleter.future;
 
     if (Platform.isIOS) {
-      MinMaxZoomPreference zoomLevel = await inspector.getMinMaxZoomLevels();
+      final MinMaxZoomPreference zoomLevel =
+          await inspector.getMinMaxZoomLevels();
       expect(zoomLevel, equals(initialZoomLevel));
     } else if (Platform.isAndroid) {
       await controller.moveCamera(CameraUpdate.zoomTo(15));
       await tester.pumpAndSettle();
-      double zoomLevel = await inspector.getZoomLevel();
+      double? zoomLevel = await inspector.getZoomLevel();
       expect(zoomLevel, equals(initialZoomLevel.maxZoom));
 
       await controller.moveCamera(CameraUpdate.zoomTo(1));
@@ -162,18 +161,19 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         minMaxZoomPreference: finalZoomLevel,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
 
     if (Platform.isIOS) {
-      MinMaxZoomPreference zoomLevel = await inspector.getMinMaxZoomLevels();
+      final MinMaxZoomPreference zoomLevel =
+          await inspector.getMinMaxZoomLevels();
       expect(zoomLevel, equals(finalZoomLevel));
     } else {
       await controller.moveCamera(CameraUpdate.zoomTo(15));
       await tester.pumpAndSettle();
-      double zoomLevel = await inspector.getZoomLevel();
+      double? zoomLevel = await inspector.getZoomLevel();
       expect(zoomLevel, equals(finalZoomLevel.maxZoom));
 
       await controller.moveCamera(CameraUpdate.zoomTo(1));
@@ -197,14 +197,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool zoomGesturesEnabled = await inspector.isZoomGesturesEnabled();
+    bool? zoomGesturesEnabled = await inspector.isZoomGesturesEnabled();
     expect(zoomGesturesEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -214,7 +214,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         zoomGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -236,15 +236,15 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool zoomControlsEnabled = await inspector.isZoomControlsEnabled();
-    expect(zoomControlsEnabled, Platform.isIOS ? false : true);
+    bool? zoomControlsEnabled = await inspector.isZoomControlsEnabled();
+    expect(zoomControlsEnabled, !Platform.isIOS);
 
     /// Zoom Controls functionality is not available on iOS at the moment.
     if (Platform.isAndroid) {
@@ -255,7 +255,7 @@ void main() {
           initialCameraPosition: _kInitialCameraPosition,
           zoomControlsEnabled: false,
           onMapCreated: (GoogleMapController controller) {
-            fail("OnMapCreated should get called only once.");
+            fail('OnMapCreated should get called only once.');
           },
         ),
       ));
@@ -279,14 +279,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool liteModeEnabled = await inspector.isLiteModeEnabled();
+    bool? liteModeEnabled = await inspector.isLiteModeEnabled();
     expect(liteModeEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -296,7 +296,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         liteModeEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -319,14 +319,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool rotateGesturesEnabled = await inspector.isRotateGesturesEnabled();
+    bool? rotateGesturesEnabled = await inspector.isRotateGesturesEnabled();
     expect(rotateGesturesEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -336,7 +336,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         rotateGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -359,14 +359,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool tiltGesturesEnabled = await inspector.isTiltGesturesEnabled();
+    bool? tiltGesturesEnabled = await inspector.isTiltGesturesEnabled();
     expect(tiltGesturesEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -376,7 +376,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         tiltGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -399,14 +399,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool scrollGesturesEnabled = await inspector.isScrollGesturesEnabled();
+    bool? scrollGesturesEnabled = await inspector.isScrollGesturesEnabled();
     expect(scrollGesturesEnabled, false);
 
     await tester.pumpWidget(Directionality(
@@ -416,7 +416,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         scrollGesturesEnabled: true,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -450,11 +450,11 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
-    ScreenCoordinate coordinate =
+    final ScreenCoordinate coordinate =
         await mapController.getScreenCoordinate(_kInitialCameraPosition.target);
-    Rect rect = tester.getRect(find.byKey(key));
+    final Rect rect = tester.getRect(find.byKey(key));
     if (Platform.isIOS) {
       // On iOS, the coordinate value from the GoogleMapSdk doesn't include the devicePixelRatio`.
       // So we don't need to do the conversion like we did below for other platforms.
@@ -526,7 +526,7 @@ void main() {
 
     // TODO(iskakaushik): non-zero padding is needed for some device configurations
     // https://github.com/flutter/flutter/issues/30575
-    final double padding = 0;
+    const double padding = 0;
     await mapController
         .moveCamera(CameraUpdate.newLatLngBounds(latLngBounds, padding));
     await tester.pumpAndSettle(const Duration(seconds: 3));
@@ -557,14 +557,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool isTrafficEnabled = await inspector.isTrafficEnabled();
+    bool? isTrafficEnabled = await inspector.isTrafficEnabled();
     expect(isTrafficEnabled, true);
 
     await tester.pumpWidget(Directionality(
@@ -574,7 +574,7 @@ void main() {
         initialCameraPosition: _kInitialCameraPosition,
         trafficEnabled: false,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -597,14 +597,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    final bool isBuildingsEnabled = await inspector.isBuildingsEnabled();
+    final bool? isBuildingsEnabled = await inspector.isBuildingsEnabled();
     expect(isBuildingsEnabled, true);
   });
 
@@ -624,14 +624,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    bool myLocationButtonEnabled = await inspector.isMyLocationButtonEnabled();
+    bool? myLocationButtonEnabled = await inspector.isMyLocationButtonEnabled();
     expect(myLocationButtonEnabled, true);
 
     await tester.pumpWidget(Directionality(
@@ -642,7 +642,7 @@ void main() {
         myLocationButtonEnabled: false,
         myLocationEnabled: false,
         onMapCreated: (GoogleMapController controller) {
-          fail("OnMapCreated should get called only once.");
+          fail('OnMapCreated should get called only once.');
         },
       ),
     ));
@@ -667,14 +667,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    final bool myLocationButtonEnabled =
+    final bool? myLocationButtonEnabled =
         await inspector.isMyLocationButtonEnabled();
     expect(myLocationButtonEnabled, false);
   }, skip: Platform.isAndroid);
@@ -695,14 +695,14 @@ void main() {
         onMapCreated: (GoogleMapController controller) {
           final GoogleMapInspector inspector =
               // ignore: invalid_use_of_visible_for_testing_member
-              GoogleMapInspector(controller.channel);
+              GoogleMapInspector(controller.channel!);
           inspectorCompleter.complete(inspector);
         },
       ),
     ));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    final bool myLocationButtonEnabled =
+    final bool? myLocationButtonEnabled =
         await inspector.isMyLocationButtonEnabled();
     expect(myLocationButtonEnabled, true);
   }, skip: Platform.isAndroid);
@@ -724,7 +724,7 @@ void main() {
     ));
 
     final GoogleMapController controller = await controllerCompleter.future;
-    final String mapStyle =
+    const String mapStyle =
         '[{"elementType":"geometry","stylers":[{"color":"#242f3e"}]}]';
     await controller.setMapStyle(mapStyle);
   });
@@ -798,7 +798,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
     final LatLng topLeft =
@@ -833,7 +833,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     double zoom = await controller.getZoomLevel();
     expect(zoom, _kInitialZoomLevel);
@@ -865,7 +865,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     final LatLngBounds visibleRegion = await controller.getVisibleRegion();
     final LatLng northWest = LatLng(
@@ -903,7 +903,7 @@ void main() {
     // TODO(cyanglaz): Remove this after we added `mapRendered` callback, and `mapControllerCompleter.complete(controller)` above should happen
     // in `mapRendered`.
     // https://github.com/flutter/flutter/issues/54758
-    await Future.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
 
     // Simple call to make sure that the app hasn't crashed.
     final LatLngBounds bounds1 = await controller.getVisibleRegion();
@@ -912,12 +912,12 @@ void main() {
   });
 
   testWidgets('testToggleInfoWindow', (WidgetTester tester) async {
-    final Marker marker = Marker(
-        markerId: MarkerId("marker"),
-        infoWindow: InfoWindow(title: "InfoWindow"));
+    const Marker marker = Marker(
+        markerId: MarkerId('marker'),
+        infoWindow: InfoWindow(title: 'InfoWindow'));
     final Set<Marker> markers = <Marker>{marker};
 
-    Completer<GoogleMapController> controllerCompleter =
+    final Completer<GoogleMapController> controllerCompleter =
         Completer<GoogleMapController>();
 
     await tester.pumpWidget(Directionality(
@@ -931,7 +931,7 @@ void main() {
       ),
     ));
 
-    GoogleMapController controller = await controllerCompleter.future;
+    final GoogleMapController controller = await controllerCompleter.future;
 
     bool iwVisibleStatus =
         await controller.isMarkerInfoWindowShown(marker.markerId);
@@ -946,9 +946,9 @@ void main() {
     expect(iwVisibleStatus, false);
   });
 
-  testWidgets("fromAssetImage", (WidgetTester tester) async {
-    double pixelRatio = 2;
-    final ImageConfiguration imageConfiguration =
+  testWidgets('fromAssetImage', (WidgetTester tester) async {
+    const double pixelRatio = 2;
+    const ImageConfiguration imageConfiguration =
         ImageConfiguration(devicePixelRatio: pixelRatio);
     final BitmapDescriptor mip = await BitmapDescriptor.fromAssetImage(
         imageConfiguration, 'red_square.png');
@@ -960,7 +960,7 @@ void main() {
   });
 
   testWidgets('testTakeSnapshot', (WidgetTester tester) async {
-    Completer<GoogleMapInspector> inspectorCompleter =
+    final Completer<GoogleMapInspector> inspectorCompleter =
         Completer<GoogleMapInspector>();
 
     await tester.pumpWidget(
@@ -971,7 +971,7 @@ void main() {
           onMapCreated: (GoogleMapController controller) {
             final GoogleMapInspector inspector =
                 // ignore: invalid_use_of_visible_for_testing_member
-                GoogleMapInspector(controller.channel);
+                GoogleMapInspector(controller.channel!);
             inspectorCompleter.complete(inspector);
           },
         ),
@@ -981,7 +981,7 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 3));
 
     final GoogleMapInspector inspector = await inspectorCompleter.future;
-    final Uint8List bytes = await inspector.takeSnapshot();
+    final Uint8List? bytes = await inspector.takeSnapshot();
     expect(bytes?.isNotEmpty, true);
   },
       // TODO(cyanglaz): un-skip the test when we can test this on CI with API key enabled.
@@ -991,10 +991,10 @@ void main() {
   testWidgets(
     'set tileOverlay correctly',
     (WidgetTester tester) async {
-      Completer<GoogleMapInspector> inspectorCompleter =
+      final Completer<GoogleMapInspector> inspectorCompleter =
           Completer<GoogleMapInspector>();
       final TileOverlay tileOverlay1 = TileOverlay(
-        tileOverlayId: TileOverlayId('tile_overlay_1'),
+        tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 2,
         visible: true,
@@ -1003,7 +1003,7 @@ void main() {
       );
 
       final TileOverlay tileOverlay2 = TileOverlay(
-        tileOverlayId: TileOverlayId('tile_overlay_2'),
+        tileOverlayId: const TileOverlayId('tile_overlay_2'),
         tileProvider: _DebugTileProvider(),
         zIndex: 1,
         visible: false,
@@ -1019,7 +1019,7 @@ void main() {
             onMapCreated: (GoogleMapController controller) {
               final GoogleMapInspector inspector =
                   // ignore: invalid_use_of_visible_for_testing_member
-                  GoogleMapInspector(controller.channel);
+                  GoogleMapInspector(controller.channel!);
               inspectorCompleter.complete(inspector);
             },
           ),
@@ -1029,10 +1029,10 @@ void main() {
 
       final GoogleMapInspector inspector = await inspectorCompleter.future;
 
-      Map<String, dynamic> tileOverlayInfo1 =
-          await inspector.getTileOverlayInfo('tile_overlay_1');
-      Map<String, dynamic> tileOverlayInfo2 =
-          await inspector.getTileOverlayInfo('tile_overlay_2');
+      final Map<String, dynamic> tileOverlayInfo1 =
+          (await inspector.getTileOverlayInfo('tile_overlay_1'))!;
+      final Map<String, dynamic> tileOverlayInfo2 =
+          (await inspector.getTileOverlayInfo('tile_overlay_2'))!;
 
       expect(tileOverlayInfo1['visible'], isTrue);
       expect(tileOverlayInfo1['fadeIn'], isTrue);
@@ -1051,11 +1051,11 @@ void main() {
   testWidgets(
     'update tileOverlays correctly',
     (WidgetTester tester) async {
-      Completer<GoogleMapInspector> inspectorCompleter =
+      final Completer<GoogleMapInspector> inspectorCompleter =
           Completer<GoogleMapInspector>();
       final Key key = GlobalKey();
       final TileOverlay tileOverlay1 = TileOverlay(
-        tileOverlayId: TileOverlayId('tile_overlay_1'),
+        tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 2,
         visible: true,
@@ -1064,7 +1064,7 @@ void main() {
       );
 
       final TileOverlay tileOverlay2 = TileOverlay(
-        tileOverlayId: TileOverlayId('tile_overlay_2'),
+        tileOverlayId: const TileOverlayId('tile_overlay_2'),
         tileProvider: _DebugTileProvider(),
         zIndex: 3,
         visible: true,
@@ -1081,7 +1081,7 @@ void main() {
             onMapCreated: (GoogleMapController controller) {
               final GoogleMapInspector inspector =
                   // ignore: invalid_use_of_visible_for_testing_member
-                  GoogleMapInspector(controller.channel);
+                  GoogleMapInspector(controller.channel!);
               inspectorCompleter.complete(inspector);
             },
           ),
@@ -1091,7 +1091,7 @@ void main() {
       final GoogleMapInspector inspector = await inspectorCompleter.future;
 
       final TileOverlay tileOverlay1New = TileOverlay(
-        tileOverlayId: TileOverlayId('tile_overlay_1'),
+        tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 1,
         visible: false,
@@ -1115,9 +1115,9 @@ void main() {
 
       await tester.pumpAndSettle(const Duration(seconds: 3));
 
-      Map<String, dynamic> tileOverlayInfo1 =
-          await inspector.getTileOverlayInfo('tile_overlay_1');
-      Map<String, dynamic> tileOverlayInfo2 =
+      final Map<String, dynamic> tileOverlayInfo1 =
+          (await inspector.getTileOverlayInfo('tile_overlay_1'))!;
+      final Map<String, dynamic>? tileOverlayInfo2 =
           await inspector.getTileOverlayInfo('tile_overlay_2');
 
       expect(tileOverlayInfo1['visible'], isFalse);
@@ -1133,11 +1133,11 @@ void main() {
   testWidgets(
     'remove tileOverlays correctly',
     (WidgetTester tester) async {
-      Completer<GoogleMapInspector> inspectorCompleter =
+      final Completer<GoogleMapInspector> inspectorCompleter =
           Completer<GoogleMapInspector>();
       final Key key = GlobalKey();
       final TileOverlay tileOverlay1 = TileOverlay(
-        tileOverlayId: TileOverlayId('tile_overlay_1'),
+        tileOverlayId: const TileOverlayId('tile_overlay_1'),
         tileProvider: _DebugTileProvider(),
         zIndex: 2,
         visible: true,
@@ -1155,7 +1155,7 @@ void main() {
             onMapCreated: (GoogleMapController controller) {
               final GoogleMapInspector inspector =
                   // ignore: invalid_use_of_visible_for_testing_member
-                  GoogleMapInspector(controller.channel);
+                  GoogleMapInspector(controller.channel!);
               inspectorCompleter.complete(inspector);
             },
           ),
@@ -1178,7 +1178,7 @@ void main() {
       );
 
       await tester.pumpAndSettle(const Duration(seconds: 3));
-      Map<String, dynamic> tileOverlayInfo1 =
+      final Map<String, dynamic>? tileOverlayInfo1 =
           await inspector.getTileOverlayInfo('tile_overlay_1');
 
       expect(tileOverlayInfo1, isNull);
@@ -1197,17 +1197,17 @@ class _DebugTileProvider implements TileProvider {
   static const int width = 100;
   static const int height = 100;
   static final Paint boxPaint = Paint();
-  static final TextStyle textStyle = TextStyle(
+  static const TextStyle textStyle = TextStyle(
     color: Colors.red,
     fontSize: 20,
   );
 
   @override
-  Future<Tile> getTile(int x, int y, int zoom) async {
+  Future<Tile> getTile(int x, int y, int? zoom) async {
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder);
     final TextSpan textSpan = TextSpan(
-      text: "$x,$y",
+      text: '$x,$y',
       style: textStyle,
     );
     final TextPainter textPainter = TextPainter(
@@ -1218,7 +1218,7 @@ class _DebugTileProvider implements TileProvider {
       minWidth: 0.0,
       maxWidth: width.toDouble(),
     );
-    final Offset offset = const Offset(0, 0);
+    const Offset offset = Offset(0, 0);
     textPainter.paint(canvas, offset);
     canvas.drawRect(
         Rect.fromLTRB(0, 0, width.toDouble(), width.toDouble()), boxPaint);
@@ -1227,7 +1227,7 @@ class _DebugTileProvider implements TileProvider {
         .toImage(width, height)
         .then((ui.Image image) =>
             image.toByteData(format: ui.ImageByteFormat.png))
-        .then((ByteData byteData) => byteData.buffer.asUint8List());
+        .then((ByteData? byteData) => byteData!.buffer.asUint8List());
     return Tile(width, height, byteData);
   }
 }
