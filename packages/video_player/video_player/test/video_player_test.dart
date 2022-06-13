@@ -44,7 +44,7 @@ class FakeController extends ValueNotifier<VideoPlayerValue> implements VideoPla
   String? get drmUriLicense => null;
 
   @override
-  Map<String, String> get drmHttpHeaders => {};
+  Map<String, String> get drmHttpHeaders => <String, String>{};
 
   @override
   bool get withCredentials => false;
